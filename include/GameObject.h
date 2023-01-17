@@ -3,8 +3,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
-
-class Event;
+#include "../include/event.h"
 
 class GameObject
 {
@@ -25,7 +24,7 @@ private:
     std::vector<Event> events;
 public:
     // update old info to the new, and add new info 
-    void updateGame(Event& event);
+    void updateGame(const Event& event);
     // print the game summary to the provided file path
     void summarizeGame(std::string print_file_path);
 };

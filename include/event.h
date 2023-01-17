@@ -25,9 +25,6 @@ private:
     // description of the event
     std::string description;
 
-    std::string ltrim(const std::string &s);
-    std::string rtrim(const std::string &s);
-    std::string trim(const std::string &s);
 public:
     Event(std::string name, std::string team_a_name, std::string team_b_name, int time, std::map<std::string, std::string> game_updates, std::map<std::string, std::string> team_a_updates, std::map<std::string, std::string> team_b_updates, std::string discription);
     Event(const std::string & frame_body);
@@ -51,3 +48,6 @@ struct names_and_events {
 
 // function that parses the json file and returns a names_and_events object
 names_and_events parseEventsFile(std::string json_path);
+std::string ltrim(const std::string &s);
+std::string rtrim(const std::string &s);
+std::string trim(const std::string &s);

@@ -3,6 +3,11 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include "../include/StompProtocol.h"
+#include "../include/event.h"
+#include "../include/GameObject.h"
+
+
 
 class GameObject;
 class StompProtocol;
@@ -12,8 +17,14 @@ class Client
 {
 private:
     bool connected;
+    std::string activeUsername;
     std::map<std::string,std::map<std::string,GameObject>> gameNamesToUsersToGames;
     StompProtocol& protocol;
+    std::map<std::string, int> gamenameToId;
+    int idCounter;
+    int receiptCounter;
+    int waitingForReceiptId;
+
 public:
     // process command from user keyboard -> send message if needed
     void processCommand(std::string command);
