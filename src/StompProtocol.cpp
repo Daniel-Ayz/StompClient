@@ -5,64 +5,60 @@
 #include <string>
 #include <map>
 
-StompProtocol::StompProtocol(ConnectionHandler& _connectionHandelr) : connectionHandler(_connectionHandelr){
-
-}
 
 // send CONNECT STOMP message
-void StompProtocol::login(std::string host, std::string username, std::string password){
+std::string StompProtocol::login(std::string host, std::string username, std::string password) const{
     std::map<std::string, std::string> headers;
     headers["accept-version"] = "1.2";
     headers["host"] = host;
     headers["login"] = username;
     headers["passcode"] = password;
     StompMessage message("CONNECT", headers, "");
-    // return message.toString();
-    connectionHandler.sendFrameAscii(message.toString(), '\0');
+    return message.toString();
 }
 
 // send DISCONNECT STOMP message
-void StompProtocol::logout(int receipt){
+std::string StompProtocol::logout(int receipt) const{
     std::map<std::string, std::string> headers;
     headers["receipt"] = std::to_string(receipt);
     StompMessage message("DISCONNECT", headers, "");
-    // return message.toString();
-    connectionHandler.sendFrameAscii(message.toString(), '\0');
+    return message.toString();
 }
 
 // send SUBSCRIBE STOMP message
-void StompProtocol::join(int id, int receipt, std::string game_name){
+std::string StompProtocol::join(int id, int receipt, std::string game_name) const{
     std::map<std::string, std::string> headers;
     headers["destination"] = game_name;
     headers["id"] = std::to_string(id);
     headers["receipt"] = std::to_string(receipt);
     StompMessage message("SUBSCRIBE", headers, "");
-    // return message.toString();
-    connectionHandler.sendFrameAscii(message.toString(), '\0');
+    return message.toString();
 }
 
 // send UNSUBSCRIBE STOMP message
-void StompProtocol::exit(int id, int receipt){
+std::string StompProtocol::exit(int id, int receipt) const{
     std::map<std::string, std::string> headers;
     headers["id"] = std::to_string(id);
     headers["receipt"] = std::to_string(receipt);
     StompMessage message("UNSUBSCRIBE", headers, "");
-    // return message.toString();
-    connectionHandler.sendFrameAscii(message.toString(), '\0');
+    return message.toString();
 }
 
 // send SEND STOMP message for each game event to the <game_name> topic
-void StompProtocol::report(std::string username, names_and_events _names_and_events){
+std::vector<std::string> StompProtocol::report(std::string username, names_and_events _names_and_events) const{
     //std::string team_a_name = _names_and_events.team_a_name;
     //std::string team_b_name = _names_and_events.team_b_name;
+    std::vector<std::string> messages;
     std::vector<Event> events = _names_and_events.events;
     for (Event & event: _names_and_events.events){
-        sendEvent(username, event);
+        std::string message = getEventMessage(username, event);
+        messages.push_back(message);
     }
+    return messages;
 }
 
 // send One event as SEND STOMP message
-void StompProtocol::sendEvent(std::string username, Event& event) const{
+std::string StompProtocol::getEventMessage(std::string username, Event& event) const{
     std::map<std::string, std::string> headers;
     headers["destination"] = event.get_team_a_name() + "_" + event.get_team_b_name();
 
@@ -91,10 +87,9 @@ void StompProtocol::sendEvent(std::string username, Event& event) const{
     body = body + event.get_discription() + "\n";
 
     StompMessage message("SEND", headers, body);
-    // return message.toString();
-    connectionHandler.sendFrameAscii(message.toString(), '\0');
+    return message.toString();
 }
 
-Event StompProtocol::receiveEvent(std::string event){
+Event StompProtocol::receiveEvent(std::string event) const{
     return Event(event);
 }

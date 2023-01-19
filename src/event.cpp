@@ -176,6 +176,32 @@ Event::Event(const std::string &frame_body) : team_a_name(""), team_b_name(""), 
     }
 }
 
+const std::string Event::to_string(){
+    std::string output;
+    output = output + "team a: " + get_team_a_name() +"\n";
+	output = output + "team b: " + get_team_b_name() +"\n";
+	output = output + "event name: " + get_name() +"\n";
+	output = output + "time: " + std::to_string(get_time()) +"\n";
+    output = output + "general game updates:\n";
+	const std::map<std::string, std::string>&  game_updates = get_game_updates();
+    for (const auto & kv : game_updates){
+        output = output + "\t" + kv.first + ": " + kv.second +"\n";
+    }
+    output = output + "team a updates:\n";
+    const std::map<std::string, std::string>& team_a_updates = get_team_a_updates();
+    for (const auto & kv : team_a_updates ){
+        output = output + "\t" + kv.first + ": " + kv.second +"\n";
+    }
+    output = output + "team b updates:\n";
+    const std::map<std::string, std::string>& team_b_updates = get_team_b_updates();
+    for (auto & kv : team_b_updates){
+        output = output + "\t" + kv.first + ": " + kv.second +"\n";
+    }
+    output = output + "description:\n";
+	output = output + get_discription();
+    return output;
+}
+
 std::string ltrim(const std::string &s)
 {
     size_t start = s.find_first_not_of(WHITESPACE);
