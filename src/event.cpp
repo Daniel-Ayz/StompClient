@@ -176,7 +176,7 @@ Event::Event(const std::string &frame_body) : team_a_name(""), team_b_name(""), 
     }
 }
 
-const std::string Event::to_string(){
+const std::string Event::to_string() const{
     std::string output;
     output = output + "team a: " + get_team_a_name() +"\n";
 	output = output + "team b: " + get_team_b_name() +"\n";

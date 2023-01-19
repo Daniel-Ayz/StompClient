@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 				}
 				StompProtocol protocol;
 				Client client(connectionHandler, protocol);
-				std::cout << "starting main" << std::endl;
+				// std::cout << "starting main" << std::endl;
 				client.runMainThread(input);
 			}
 		}

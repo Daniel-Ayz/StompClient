@@ -14,25 +14,30 @@ void Client::processCommand(std::string command){
     if ((pos = s.find(delimiter)) != std::string::npos) {
         token = s.substr(0, pos);
         if(token == "login"){
-            s.erase(0, pos + delimiter.length());
-            pos = s.find(delimiter);
-            token = s.substr(0, pos);
-            std::string hostNPort = token;
-            size_t posH = hostNPort.find(":");
-            std::string host = hostNPort.substr(0, posH);
-            std::string port = hostNPort.erase(0, posH + 1);
-            s.erase(0, pos + delimiter.length());
-            pos = s.find(delimiter);
-            token = s.substr(0, pos);
-            std::string username = token;
-            activeUsername = username;
-            s.erase(0, pos + delimiter.length());
-            std::string password = s;
-            connect();
-            
-            std::string message = protocol.login(host, username, password);
-            std::cout << message << std::endl;
-            connectionHandler.sendFrameAscii(message, '\0');
+            if(!connected){
+                s.erase(0, pos + delimiter.length());
+                pos = s.find(delimiter);
+                token = s.substr(0, pos);
+                std::string hostNPort = token;
+                size_t posH = hostNPort.find(":");
+                std::string host = hostNPort.substr(0, posH);
+                std::string port = hostNPort.erase(0, posH + 1);
+                s.erase(0, pos + delimiter.length());
+                pos = s.find(delimiter);
+                token = s.substr(0, pos);
+                std::string username = token;
+                activeUsername = username;
+                s.erase(0, pos + delimiter.length());
+                std::string password = s;
+                connect();
+                waitingForReceiptId = -2;
+                std::string message = protocol.login(host, username, password);
+                // std::cout << message << std::endl;
+                connectionHandler.sendFrameAscii(message, '\0');
+            }
+            else{
+                std::cout << "The client is already logged in, log out before trying again" << std::endl;
+            }
         }
         else if(token == "join"){
             s.erase(0, pos + delimiter.length());
@@ -56,7 +61,11 @@ void Client::processCommand(std::string command){
             std::string file = s;
             std::vector<std::string> messages = protocol.report(activeUsername, parseEventsFile(file));
             for (std::string message : messages){
-                connectionHandler.sendFrameAscii(message, '\0');
+                if(!shouldTerminate()){
+                    connectionHandler.sendFrameAscii(message, '\0');
+                    waitingForReceiptId = -3;
+                    waitForResponse();
+                }
             }
         }
         else if(token == "summary"){
@@ -109,7 +118,7 @@ void Client::processResponse(std::string response){
                 waitingForReceiptId = -1;
             }
             else{
-                std::cout << "Got this receipt: " << receiptId << " waited for this receipt: " << waitingForReceiptId << std::endl;
+                // std::cout << "Got this receipt: " << receiptId << " waited for this receipt: " << waitingForReceiptId << std::endl;
             }
         }
         else if(token == "ERROR"){
@@ -120,7 +129,7 @@ void Client::processResponse(std::string response){
             waitingForReceiptId = -1;
         }
         else if(token == "MESSAGE"){
-            std::cout <<"S:>>>"<< s << std::endl;
+            // std::cout <<"S:>>>"<< s << std::endl;
 
             pos = s.find(delimiter+delimiter);
             s.erase(0, pos + delimiter.length()*2);
@@ -133,6 +142,9 @@ void Client::processResponse(std::string response){
             pos = s.find(delimiter);
             std::string username = s.substr(0, pos);
             username = trim(username);
+            if(username == activeUsername){
+                waitingForReceiptId = -1;
+            }
 
             std::string teamAdelimiter = "team a:";
             pos = s.find(teamAdelimiter);
@@ -152,9 +164,9 @@ void Client::processResponse(std::string response){
             if(gameNamesToUsersToGames.count(teamA+"_"+teamB) == 0){
                 gameNamesToUsersToGames[teamA+"_"+teamB] = std::map<std::string, GameObject>();
             }
-            if(gameNamesToUsersToGames[teamA+"_"+teamB].count(username) == 0){
-                gameNamesToUsersToGames[teamA+"_"+teamB][username] = GameObject();
-            }
+            // if(gameNamesToUsersToGames[teamA+"_"+teamB].count(username) == 0){
+            //     gameNamesToUsersToGames[teamA+"_"+teamB][username] = GameObject();
+            // }
             gameNamesToUsersToGames[teamA+"_"+teamB][username].updateGame(Event(frameBody));
         }
     }
@@ -169,6 +181,7 @@ void Client::connect(){
 // set connect state FALSE
 void Client::disconnect(){
     connected = false;
+    terminate();
 }
 
 void Client::runResponseThread(){
@@ -176,11 +189,10 @@ void Client::runResponseThread(){
         std::string response;
         bool t = connectionHandler.getFrameAscii(response, '\0');
         if(!t){
-            std::cout << "teminating" << std::endl;
+            std::cout << "teminating, connection lost" << std::endl;
             terminate();
         }
-        std::cout << "got response" << std::endl;
-        std::cout << response << std::endl;
+        // std::cout << response << std::endl;
         processResponse(response);
     }
 }

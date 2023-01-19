@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include "../include/event.h"
+#include <fstream>
 
 class GameObject
 {
@@ -13,7 +14,7 @@ private:
     // name of team b
     std::string team_b_name;
     // name of the event
-    std::string name;
+    // std::string name;
     // map of all the general game updates
     std::map<std::string, std::string> game_updates;
     // map of all team a updates the second type can be a string bool or int
@@ -23,6 +24,7 @@ private:
     //events
     std::vector<Event> events;
 public:
+    // GameObject(std::string nameA, std::string nameB);
     // update old info to the new, and add new info 
     void updateGame(const Event& event);
     // print the game summary to the provided file path
